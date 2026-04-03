@@ -1,0 +1,44 @@
+version: "2"
+
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gofumpt
+    - godot
+    - misspell
+    - nilnil
+    - nilerr
+    - revive
+    - stylecheck
+    - whitespace
+    - wrapcheck
+
+linters-settings:
+  gofumpt:
+    extra-rules: true
+  revive:
+    rules:
+      - name: exported
+      - name: error-return
+      - name: error-naming
+      - name: var-naming
+  stylecheck:
+    checks:
+      - all
+      - -ST1000
+  wrapcheck:
+    ignorePackageGlobs:
+      - github.com/ppzxc/golang-vibe-boilerplate/internal/domain/*
+      - github.com/ppzxc/golang-vibe-boilerplate/pkg/*
+
+issues:
+  exclude-rules:
+    - path: "_test.go"
+      linters:
+        - wrapcheck
+        - godot

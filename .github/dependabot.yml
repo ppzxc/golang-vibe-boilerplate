@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      testing:
+        patterns:
+          - "github.com/testcontainers/*"
+          - "github.com/stretchr/*"
+      chi:
+        patterns:
+          - "github.com/go-chi/*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"

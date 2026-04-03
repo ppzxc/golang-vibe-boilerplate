@@ -1,0 +1,18 @@
+pre-commit:
+  parallel: true
+  commands:
+    fmt-check:
+      glob: "*.go"
+      run: gofumpt -l -d . && test -z "$(gofumpt -l .)"
+    vet:
+      run: go vet ./...
+    lint:
+      glob: "*.go"
+      run: golangci-lint run --fast ./...
+
+pre-push:
+  commands:
+    test:
+      run: go test -race -count=1 ./...
+    vuln:
+      run: govulncheck ./...
