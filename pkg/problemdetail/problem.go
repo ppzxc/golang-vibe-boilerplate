@@ -3,6 +3,7 @@ package problemdetail
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 )
 
@@ -56,7 +57,9 @@ func (p *Problem) WithType(problemType string) *Problem {
 func (p *Problem) Write(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", ContentType)
 	w.WriteHeader(p.Status)
-	_ = json.NewEncoder(w).Encode(p)
+	if err := json.NewEncoder(w).Encode(p); err != nil {
+		slog.Warn("failed to encode problem response", "error", err, "status", p.Status)
+	}
 }
 
 // NotFound returns a 404 Problem.

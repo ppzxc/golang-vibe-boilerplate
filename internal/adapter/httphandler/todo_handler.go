@@ -2,6 +2,7 @@ package httphandler
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -41,7 +42,9 @@ func (h *TodoHandler) Create(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Location", "/todos/"+todo.ID)
 	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(toTodoResponse(todo))
+	if err := json.NewEncoder(w).Encode(toTodoResponse(todo)); err != nil {
+		slog.Warn("failed to encode response", "error", err, "path", r.URL.Path)
+	}
 }
 
 // Get handles GET /todos/{todoId} — retrieves a single Todo.
@@ -53,7 +56,9 @@ func (h *TodoHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(toTodoResponse(todo))
+	if err := json.NewEncoder(w).Encode(toTodoResponse(todo)); err != nil {
+		slog.Warn("failed to encode response", "error", err, "path", r.URL.Path)
+	}
 }
 
 // List handles GET /todos — returns a paginated list of Todos.
@@ -86,7 +91,9 @@ func (h *TodoHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(items)
+	if err := json.NewEncoder(w).Encode(items); err != nil {
+		slog.Warn("failed to encode response", "error", err, "path", r.URL.Path)
+	}
 }
 
 // Update handles PATCH /todos/{todoId} — partially updates a Todo.
@@ -109,7 +116,9 @@ func (h *TodoHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(toTodoResponse(todo))
+	if err := json.NewEncoder(w).Encode(toTodoResponse(todo)); err != nil {
+		slog.Warn("failed to encode response", "error", err, "path", r.URL.Path)
+	}
 }
 
 // Delete handles DELETE /todos/{todoId} — removes a Todo.
@@ -133,5 +142,7 @@ func (h *TodoHandler) Complete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(toTodoResponse(todo))
+	if err := json.NewEncoder(w).Encode(toTodoResponse(todo)); err != nil {
+		slog.Warn("failed to encode response", "error", err, "path", r.URL.Path)
+	}
 }
