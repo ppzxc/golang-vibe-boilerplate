@@ -9,7 +9,7 @@ import (
 	"log/slog"
 	"time"
 
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq" // Register postgres driver
 
 	domain "github.com/ppzxc/golang-vibe-boilerplate/internal/domain/todo"
 )
@@ -71,7 +71,7 @@ func (r *TodoRepository) FindAll(ctx context.Context, cursor string, pageSize in
 		}
 	}()
 
-	var todos []*domain.Todo
+	todos := make([]*domain.Todo, 0, pageSize+1)
 	for rows.Next() {
 		todo, err := scanTodoRow(rows)
 		if err != nil {
@@ -99,7 +99,7 @@ func (r *TodoRepository) Update(ctx context.Context, id string, fn func(*domain.
 	if err != nil {
 		return fmt.Errorf("postgresrepo.TodoRepository.Update: begin tx: %w", err)
 	}
-	defer tx.Rollback() //nolint:errcheck
+	defer tx.Rollback() //nolint:errcheck // best-effort rollback after commit or error return
 
 	q := `SELECT id, title, description, completed, created_at, updated_at
           FROM todos WHERE id = $1 FOR UPDATE`
