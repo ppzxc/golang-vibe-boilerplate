@@ -32,7 +32,11 @@ func main() {
 		slog.Error("failed to open database", "error", err)
 		os.Exit(1)
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			slog.Error("failed to close database", "error", err)
+		}
+	}()
 
 	if err := pingDB(db); err != nil {
 		slog.Error("database ping failed", "error", err)
@@ -53,25 +57,31 @@ func main() {
 		IdleTimeout:  60 * time.Second,
 	}
 
-	// Start server in background
+	// Graceful shutdown on SIGINT or SIGTERM
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	// Start server in background, send errors via channel
+	errCh := make(chan error, 1)
 	go func() {
 		slog.Info("server starting", "addr", cfg.Server.Port)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("server error", "error", err)
-			os.Exit(1)
+			errCh <- err
 		}
 	}()
 
-	// Graceful shutdown on SIGINT or SIGTERM
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
+	// Wait for shutdown signal or server error
+	select {
+	case <-ctx.Done():
+		slog.Info("server shutting down")
+	case err := <-errCh:
+		slog.Error("server error", "error", err)
+	}
 
-	slog.Info("server shutting down")
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	if err := srv.Shutdown(ctx); err != nil {
+	if err := srv.Shutdown(shutdownCtx); err != nil {
 		slog.Error("forced shutdown", "error", err)
 	}
 	slog.Info("server stopped")
