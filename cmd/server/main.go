@@ -24,7 +24,11 @@ func main() {
 		Level: slog.LevelInfo,
 	})))
 
-	cfg := config.Load()
+	cfg, err := config.Load()
+	if err != nil {
+		slog.Error("failed to load config", "error", err)
+		os.Exit(1)
+	}
 
 	// Open database connection
 	db, err := postgresrepo.Open(cfg.Database.DSN())
