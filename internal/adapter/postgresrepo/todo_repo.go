@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -64,7 +65,11 @@ func (r *TodoRepository) FindAll(ctx context.Context, cursor string, pageSize in
 	if err != nil {
 		return nil, "", fmt.Errorf("postgresrepo.TodoRepository.FindAll: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			slog.Error("failed to close rows", "error", err)
+		}
+	}()
 
 	var todos []*domain.Todo
 	for rows.Next() {
