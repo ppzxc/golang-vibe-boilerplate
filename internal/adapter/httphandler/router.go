@@ -1,6 +1,7 @@
 package httphandler
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -41,7 +42,9 @@ func NewRouter(todoSvc *apptodo.Service) http.Handler {
 	// Health check
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"status":"ok"}`))
+		if _, err := w.Write([]byte(`{"status":"ok"}`)); err != nil {
+			slog.Warn("failed to write health response", "error", err)
+		}
 	})
 
 	return r
