@@ -48,9 +48,9 @@ func setupPostgres(t *testing.T) *sql.DB {
 	dsn := fmt.Sprintf("host=%s port=%s user=testuser password=testpass dbname=testdb sslmode=disable",
 		host, port.Port())
 
-	db, err := postgresrepo.Open(dsn)
+	db, cleanup, err := postgresrepo.Open(dsn)
 	require.NoError(t, err)
-	t.Cleanup(func() { db.Close() })
+	t.Cleanup(cleanup)
 
 	// Run migration
 	_, err = db.ExecContext(ctx, `
