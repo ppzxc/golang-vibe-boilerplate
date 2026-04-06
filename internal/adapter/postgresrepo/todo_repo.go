@@ -160,15 +160,22 @@ func (r *TodoRepository) Count(ctx context.Context) (int64, error) {
 }
 
 // Open opens a PostgreSQL connection with the given DSN.
-func Open(dsn string) (*sql.DB, error) {
+func Open(dsn string) (*sql.DB, func(), error) {
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		return nil, fmt.Errorf("postgresrepo.Open: %w", err)
+		return nil, nil, fmt.Errorf("postgresrepo.Open: %w", err)
 	}
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(5 * time.Minute)
-	return db, nil
+
+	cleanup := func() {
+		if err := db.Close(); err != nil {
+			slog.Error("failed to close database", "error", err)
+		}
+	}
+
+	return db, cleanup, nil
 }
 
 type scanner interface {
