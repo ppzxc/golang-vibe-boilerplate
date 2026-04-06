@@ -10,29 +10,29 @@ type Event interface {
 	OccurredAt() time.Time
 }
 
-// TodoCompleted is a domain event.
-type TodoCompleted struct {
+// Completed is a domain event.
+type Completed struct {
 	ID   string
 	When time.Time
 }
 
-func (e TodoCompleted) OccurredAt() time.Time { return e.When }
+func (e Completed) OccurredAt() time.Time { return e.When }
 
-// TodoCreated is a domain event.
-type TodoCreated struct {
+// Created is a domain event.
+type Created struct {
 	ID   string
 	When time.Time
 }
 
-func (e TodoCreated) OccurredAt() time.Time { return e.When }
+func (e Created) OccurredAt() time.Time { return e.When }
 
-// TodoUpdated is a domain event.
-type TodoUpdated struct {
+// Updated is a domain event.
+type Updated struct {
 	ID   string
 	When time.Time
 }
 
-func (e TodoUpdated) OccurredAt() time.Time { return e.When }
+func (e Updated) OccurredAt() time.Time { return e.When }
 
 // Sentinel errors.
 var (
@@ -65,7 +65,7 @@ func New(id, title, description string) (*Todo, error) {
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
-	t.Events = append(t.Events, TodoCreated{ID: id, When: now})
+	t.Events = append(t.Events, Created{ID: id, When: now})
 	return t, nil
 }
 
@@ -75,7 +75,7 @@ func (t *Todo) Complete() error {
 	}
 	t.Completed = true
 	t.UpdatedAt = time.Now().UTC()
-	t.Events = append(t.Events, TodoCompleted{ID: t.ID, When: t.UpdatedAt})
+	t.Events = append(t.Events, Completed{ID: t.ID, When: t.UpdatedAt})
 	return nil
 }
 
@@ -85,14 +85,14 @@ func (t *Todo) UpdateTitle(title string) error {
 	}
 	t.Title = title
 	t.UpdatedAt = time.Now().UTC()
-	t.Events = append(t.Events, TodoUpdated{ID: t.ID, When: t.UpdatedAt})
+	t.Events = append(t.Events, Updated{ID: t.ID, When: t.UpdatedAt})
 	return nil
 }
 
 func (t *Todo) UpdateDescription(description string) {
 	t.Description = description
 	t.UpdatedAt = time.Now().UTC()
-	t.Events = append(t.Events, TodoUpdated{ID: t.ID, When: t.UpdatedAt})
+	t.Events = append(t.Events, Updated{ID: t.ID, When: t.UpdatedAt})
 }
 
 // ClearEvents empties the event list.

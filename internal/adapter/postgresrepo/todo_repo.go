@@ -186,7 +186,7 @@ func scanTodo(s scanner) (*domain.Todo, error) {
 	var t domain.Todo
 	err := s.Scan(&t.ID, &t.Title, &t.Description, &t.Completed, &t.CreatedAt, &t.UpdatedAt)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("postgresrepo.scan: %w", err)
 	}
 	return &t, nil
 }
@@ -195,7 +195,7 @@ func scanTodoRow(rows *sql.Rows) (*domain.Todo, error) {
 	var t domain.Todo
 	err := rows.Scan(&t.ID, &t.Title, &t.Description, &t.Completed, &t.CreatedAt, &t.UpdatedAt)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("postgresrepo.scan: %w", err)
 	}
 	return &t, nil
 }

@@ -60,9 +60,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Todo'
 
-  /todos/{todoId}:
+  /todos/{todoID}:
     parameters:
-      - name: todoId
+      - name: todoID
         in: path
         required: true
         schema:
@@ -100,12 +100,12 @@ paths:
         '204':
           description: No Content
 
-  /todos/{todoId}:complete:
+  /todos/{todoID}:complete:
     post:
       summary: Complete a todo
       operationId: completeTodo
       parameters:
-        - name: todoId
+        - name: todoID
           in: path
           required: true
           schema:

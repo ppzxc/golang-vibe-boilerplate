@@ -24,15 +24,15 @@ func (b *InMemoryEventBus) Publish(ctx context.Context, events []domain.Event) e
 	return nil
 }
 
-func getEventType(e domain.Event) string {
+func (b *InMemEventBus) eventName(e domain.Event) string {
 	switch e.(type) {
-	case domain.TodoCreated:
-		return "TodoCreated"
-	case domain.TodoCompleted:
-		return "TodoCompleted"
-	case domain.TodoUpdated:
-		return "TodoUpdated"
+	case domain.Created:
+		return "Created"
+	case domain.Completed:
+		return "Completed"
+	case domain.Updated:
+		return "Updated"
 	default:
-		return "UnknownEvent"
+		return "Unknown"
 	}
 }

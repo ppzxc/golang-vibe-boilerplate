@@ -63,17 +63,17 @@ type ServerInterface interface {
 	// (POST /todos)
 	CreateTodo(w http.ResponseWriter, r *http.Request)
 	// Delete a todo
-	// (DELETE /todos/{todoId})
-	DeleteTodo(w http.ResponseWriter, r *http.Request, todoId string)
+	// (DELETE /todos/{todoID})
+	DeleteTodo(w http.ResponseWriter, r *http.Request, todoID string)
 	// Get a todo by ID
-	// (GET /todos/{todoId})
-	GetTodo(w http.ResponseWriter, r *http.Request, todoId string)
+	// (GET /todos/{todoID})
+	GetTodo(w http.ResponseWriter, r *http.Request, todoID string)
 	// Update a todo
-	// (PATCH /todos/{todoId})
-	UpdateTodo(w http.ResponseWriter, r *http.Request, todoId string)
+	// (PATCH /todos/{todoID})
+	UpdateTodo(w http.ResponseWriter, r *http.Request, todoID string)
 	// Complete a todo
-	// (POST /todos/{todoId}:complete)
-	CompleteTodo(w http.ResponseWriter, r *http.Request, todoId string)
+	// (POST /todos/{todoID}:complete)
+	CompleteTodo(w http.ResponseWriter, r *http.Request, todoID string)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -93,26 +93,26 @@ func (_ Unimplemented) CreateTodo(w http.ResponseWriter, r *http.Request) {
 }
 
 // Delete a todo
-// (DELETE /todos/{todoId})
-func (_ Unimplemented) DeleteTodo(w http.ResponseWriter, r *http.Request, todoId string) {
+// (DELETE /todos/{todoID})
+func (_ Unimplemented) DeleteTodo(w http.ResponseWriter, r *http.Request, todoID string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Get a todo by ID
-// (GET /todos/{todoId})
-func (_ Unimplemented) GetTodo(w http.ResponseWriter, r *http.Request, todoId string) {
+// (GET /todos/{todoID})
+func (_ Unimplemented) GetTodo(w http.ResponseWriter, r *http.Request, todoID string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Update a todo
-// (PATCH /todos/{todoId})
-func (_ Unimplemented) UpdateTodo(w http.ResponseWriter, r *http.Request, todoId string) {
+// (PATCH /todos/{todoID})
+func (_ Unimplemented) UpdateTodo(w http.ResponseWriter, r *http.Request, todoID string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Complete a todo
-// (POST /todos/{todoId}:complete)
-func (_ Unimplemented) CompleteTodo(w http.ResponseWriter, r *http.Request, todoId string) {
+// (POST /todos/{todoID}:complete)
+func (_ Unimplemented) CompleteTodo(w http.ResponseWriter, r *http.Request, todoID string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -179,17 +179,17 @@ func (siw *ServerInterfaceWrapper) DeleteTodo(w http.ResponseWriter, r *http.Req
 
 	var err error
 
-	// ------------- Path parameter "todoId" -------------
-	var todoId string
+	// ------------- Path parameter "todoID" -------------
+	var todoID string
 
-	err = runtime.BindStyledParameterWithOptions("simple", "todoId", chi.URLParam(r, "todoId"), &todoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
+	err = runtime.BindStyledParameterWithOptions("simple", "todoID", chi.URLParam(r, "todoID"), &todoID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "todoId", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "todoID", Err: err})
 		return
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.DeleteTodo(w, r, todoId)
+		siw.Handler.DeleteTodo(w, r, todoID)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -204,17 +204,17 @@ func (siw *ServerInterfaceWrapper) GetTodo(w http.ResponseWriter, r *http.Reques
 
 	var err error
 
-	// ------------- Path parameter "todoId" -------------
-	var todoId string
+	// ------------- Path parameter "todoID" -------------
+	var todoID string
 
-	err = runtime.BindStyledParameterWithOptions("simple", "todoId", chi.URLParam(r, "todoId"), &todoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
+	err = runtime.BindStyledParameterWithOptions("simple", "todoID", chi.URLParam(r, "todoID"), &todoID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "todoId", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "todoID", Err: err})
 		return
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetTodo(w, r, todoId)
+		siw.Handler.GetTodo(w, r, todoID)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -229,17 +229,17 @@ func (siw *ServerInterfaceWrapper) UpdateTodo(w http.ResponseWriter, r *http.Req
 
 	var err error
 
-	// ------------- Path parameter "todoId" -------------
-	var todoId string
+	// ------------- Path parameter "todoID" -------------
+	var todoID string
 
-	err = runtime.BindStyledParameterWithOptions("simple", "todoId", chi.URLParam(r, "todoId"), &todoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
+	err = runtime.BindStyledParameterWithOptions("simple", "todoID", chi.URLParam(r, "todoID"), &todoID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "todoId", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "todoID", Err: err})
 		return
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UpdateTodo(w, r, todoId)
+		siw.Handler.UpdateTodo(w, r, todoID)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -254,17 +254,17 @@ func (siw *ServerInterfaceWrapper) CompleteTodo(w http.ResponseWriter, r *http.R
 
 	var err error
 
-	// ------------- Path parameter "todoId" -------------
-	var todoId string
+	// ------------- Path parameter "todoID" -------------
+	var todoID string
 
-	err = runtime.BindStyledParameterWithOptions("simple", "todoId", chi.URLParam(r, "todoId"), &todoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
+	err = runtime.BindStyledParameterWithOptions("simple", "todoID", chi.URLParam(r, "todoID"), &todoID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "todoId", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "todoID", Err: err})
 		return
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.CompleteTodo(w, r, todoId)
+		siw.Handler.CompleteTodo(w, r, todoID)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -394,16 +394,16 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/todos", wrapper.CreateTodo)
 	})
 	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/todos/{todoId}", wrapper.DeleteTodo)
+		r.Delete(options.BaseURL+"/todos/{todoID}", wrapper.DeleteTodo)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/todos/{todoId}", wrapper.GetTodo)
+		r.Get(options.BaseURL+"/todos/{todoID}", wrapper.GetTodo)
 	})
 	r.Group(func(r chi.Router) {
-		r.Patch(options.BaseURL+"/todos/{todoId}", wrapper.UpdateTodo)
+		r.Patch(options.BaseURL+"/todos/{todoID}", wrapper.UpdateTodo)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/todos/{todoId}:complete", wrapper.CompleteTodo)
+		r.Post(options.BaseURL+"/todos/{todoID}:complete", wrapper.CompleteTodo)
 	})
 
 	return r
@@ -421,10 +421,10 @@ var swaggerSpec = []string{
 	"dBvIQPMqoLJ8hdfy3yBQmqJU+5LXiqCcFnuOpCZcoQu0vR5pbh5QH4Tqc34bOsRbo30Sb1oUaTg0oY7l",
 	"cGuVXMSC8nufNO3iScIqOv7scAkl/JR3qyBv90AeB7CTlzvHN0ndvqpKemJmyahlbI1cRLq2cCn1w2Hu",
 	"Yf/MDXE1OTN1gj4w7UiL2X1dVdxtWpUYV6pN3GRgjR9Rs1tnkEYLPf1qxOZDnL1F1XBfNodTTK7GZiDa",
-	"Lz8MQNJqqE0CJnqamJTjbV16XKdIjDONz5HvKF0ao3wbvmaiSW0f9tNQhPP4fi/CARFfh7viD8POWmYO",
-	"gaQ4jLcgsvEBvkAaT1UcnfM/f+8hvkBq4bK7DZudx0YdWSphOXWbIFEK/S56Zy1YTov1kI7uAjjSBAxv",
-	"mP81AZ+gRkK6759hE5e7OzZekuMLpbVoCT2WmJ9P1q7Qjq5wjO5pV+uhf9gsigl8QmVshZpYsg1/UJyC",
-	"EtZEtsxzFezWxlP5vfheQHPb/BcAAP//JDoY1o0KAAA=",
+	"Lz8MQNJqqE0CJnqamJTjbV16XKdIjDONz5HvKF0ao3wbvmbnTWr7sJ+GIpzH93sRDoj4OtwVfxh21jJz",
+	"CCTFYbwFkY0P8AXSeKri6Jz/+XsP8QVSC5fdbdjsPDbqyFIJy6nbBIlS6HfRO2vBclqsh3R0F8CRJmB4",
+	"w/yvCfgENRLSff8Mm7jc3bHxkhxfKK1FS+ixxPx8snaFdnSFY3RPu1oP/cNmUUzgEypjK9TEkm34g+IU",
+	"lLAmsmWeq2C3Np7K78X3Aprb5r8AAAD//22iblaNCgAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

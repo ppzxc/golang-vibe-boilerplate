@@ -80,9 +80,9 @@ func (h *TodoHandler) CreateTodo(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(resp)
 }
 
-func (h *TodoHandler) GetTodo(w http.ResponseWriter, r *http.Request, todoId string) {
+func (h *TodoHandler) GetTodo(w http.ResponseWriter, r *http.Request, todoID string) {
 	ctx := r.Context()
-	todo, err := h.service.FindByID(ctx, todoId)
+	todo, err := h.service.FindByID(ctx, todoID)
 	if err != nil {
 		h.handleError(w, r, err)
 		return
@@ -94,7 +94,7 @@ func (h *TodoHandler) GetTodo(w http.ResponseWriter, r *http.Request, todoId str
 	_ = json.NewEncoder(w).Encode(resp)
 }
 
-func (h *TodoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request, todoId string) {
+func (h *TodoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request, todoID string) {
 	ctx := r.Context()
 	var req UpdateTodoRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -102,7 +102,7 @@ func (h *TodoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request, todoId 
 		return
 	}
 
-	todo, err := h.service.Update(ctx, todoId, req.Title, req.Description)
+	todo, err := h.service.Update(ctx, todoID, req.Title, req.Description)
 	if err != nil {
 		h.handleError(w, r, err)
 		return
@@ -114,9 +114,9 @@ func (h *TodoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request, todoId 
 	_ = json.NewEncoder(w).Encode(resp)
 }
 
-func (h *TodoHandler) DeleteTodo(w http.ResponseWriter, r *http.Request, todoId string) {
+func (h *TodoHandler) DeleteTodo(w http.ResponseWriter, r *http.Request, todoID string) {
 	ctx := r.Context()
-	if err := h.service.Delete(ctx, todoId); err != nil {
+	if err := h.service.Delete(ctx, todoID); err != nil {
 		h.handleError(w, r, err)
 		return
 	}
@@ -124,9 +124,9 @@ func (h *TodoHandler) DeleteTodo(w http.ResponseWriter, r *http.Request, todoId 
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *TodoHandler) CompleteTodo(w http.ResponseWriter, r *http.Request, todoId string) {
+func (h *TodoHandler) CompleteTodo(w http.ResponseWriter, r *http.Request, todoID string) {
 	ctx := r.Context()
-	todo, err := h.service.Complete(ctx, todoId)
+	todo, err := h.service.Complete(ctx, todoID)
 	if err != nil {
 		h.handleError(w, r, err)
 		return
