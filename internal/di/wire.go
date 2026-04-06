@@ -10,8 +10,8 @@ import (
 	"github.com/ppzxc/golang-vibe-boilerplate/internal/adapter/postgresrepo"
 	"github.com/ppzxc/golang-vibe-boilerplate/internal/app"
 	"github.com/ppzxc/golang-vibe-boilerplate/internal/app/todo"
-	domain "github.com/ppzxc/golang-vibe-boilerplate/internal/domain/todo"
 	"github.com/ppzxc/golang-vibe-boilerplate/internal/config"
+	domain "github.com/ppzxc/golang-vibe-boilerplate/internal/domain/todo"
 )
 
 func InitializeServer(cfg *config.Config) (*Server, func(), error) {
