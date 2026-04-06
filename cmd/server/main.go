@@ -3,7 +3,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -12,10 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ppzxc/golang-vibe-boilerplate/internal/adapter/httphandler"
-	"github.com/ppzxc/golang-vibe-boilerplate/internal/adapter/postgresrepo"
-	apptodo "github.com/ppzxc/golang-vibe-boilerplate/internal/app/todo"
 	"github.com/ppzxc/golang-vibe-boilerplate/internal/config"
+	"github.com/ppzxc/golang-vibe-boilerplate/internal/di"
 )
 
 func main() {
@@ -30,32 +27,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Open database connection
-	db, err := postgresrepo.Open(cfg.Database.DSN())
+	// Initialize dependencies via Wire
+	server, cleanup, err := di.InitializeServer(cfg)
 	if err != nil {
-		slog.Error("failed to open database", "error", err)
+		slog.Error("failed to initialize server", "error", err)
 		os.Exit(1)
 	}
-	defer func() {
-		if err := db.Close(); err != nil {
-			slog.Error("failed to close database", "error", err)
-		}
-	}()
-
-	if err := pingDB(db); err != nil {
-		slog.Error("database ping failed", "error", err)
-		os.Exit(1)
-	}
-
-	// Manual DI: wire up all dependencies
-	todoRepo := postgresrepo.NewTodoRepository(db)
-	todoSvc := apptodo.NewService(todoRepo)
-	router := httphandler.NewRouter(todoSvc)
+	defer cleanup()
 
 	// HTTP server
 	srv := &http.Server{
-		Addr:         cfg.Server.Port,
-		Handler:      router,
+		Addr:         server.Port,
+		Handler:      server.Router,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
@@ -68,7 +51,7 @@ func main() {
 	// Start server in background, send errors via channel
 	errCh := make(chan error, 1)
 	go func() {
-		slog.Info("server starting", "addr", cfg.Server.Port)
+		slog.Info("server starting", "addr", server.Port)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errCh <- err
 		}
@@ -89,10 +72,4 @@ func main() {
 		slog.Error("forced shutdown", "error", err)
 	}
 	slog.Info("server stopped")
-}
-
-func pingDB(db *sql.DB) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	return db.PingContext(ctx)
 }

@@ -1,6 +1,7 @@
 .PHONY: run build test test-integration test-all lint fmt vet vuln \
         migrate-up migrate-down migrate-create sqlc \
-        docker-build docker-up docker-down
+        docker-build docker-up docker-down \
+        generate install-tools
 
 # Go parameters
 BINARY_NAME=server
@@ -9,6 +10,14 @@ COVERAGE_FILE=coverage.out
 
 # Database
 DB_URL ?= postgres://postgres:postgres@localhost:5432/boilerplate?sslmode=disable
+
+install-tools:
+	go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
+	go install github.com/google/wire/cmd/wire@latest
+
+generate:
+	oapi-codegen -config .oapi-codegen.yaml api/openapi.yaml
+	wire ./internal/di
 
 run:
 	go run $(MAIN_PATH)

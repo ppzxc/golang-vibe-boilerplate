@@ -2,147 +2,155 @@ package httphandler
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
-
-	apptodo "github.com/ppzxc/golang-vibe-boilerplate/internal/app/todo"
+	"github.com/google/uuid"
+	openapi_types "github.com/oapi-codegen/runtime/types"
+	domain "github.com/ppzxc/golang-vibe-boilerplate/internal/domain/todo"
 	"github.com/ppzxc/golang-vibe-boilerplate/pkg/pagination"
 )
 
-// TodoHandler handles HTTP requests for the Todo resource.
 type TodoHandler struct {
-	svc *apptodo.Service
+	service TodoService
 }
 
-// NewTodoHandler creates a new TodoHandler.
-func NewTodoHandler(svc *apptodo.Service) *TodoHandler {
-	return &TodoHandler{svc: svc}
+func NewTodoHandler(service TodoService) *TodoHandler {
+	return &TodoHandler{service: service}
 }
 
-// Create handles POST /todos — creates a new Todo.
-// Returns 201 Created with the new resource and a Location header.
-func (h *TodoHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var req createTodoRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, r, apptodo.ErrInvalidJSON)
-		return
+func (h *TodoHandler) ListTodos(w http.ResponseWriter, r *http.Request, params ListTodosParams) {
+	ctx := r.Context()
+
+	pageSize := pagination.DefaultPageSize
+	if params.PageSize != nil {
+		pageSize = *params.PageSize
 	}
 
-	todo, err := h.svc.Create(r.Context(), apptodo.CreateCommand{
-		Title:       req.Title,
-		Description: req.Description,
-	})
+	pageToken := ""
+	if params.PageToken != nil {
+		pageToken = *params.PageToken
+	}
+
+	todos, nextToken, totalCount, err := h.service.FindAll(ctx, pageToken, pageSize)
 	if err != nil {
-		writeError(w, r, err)
+		h.handleError(w, r, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Location", "/todos/"+todo.ID)
-	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(toTodoResponse(todo)); err != nil {
-		slog.Warn("failed to encode response", "error", err, "path", r.URL.Path)
-	}
-}
-
-// Get handles GET /todos/{todoId} — retrieves a single Todo.
-func (h *TodoHandler) Get(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "todoId")
-	todo, err := h.svc.FindByID(r.Context(), id)
-	if err != nil {
-		writeError(w, r, err)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(toTodoResponse(todo)); err != nil {
-		slog.Warn("failed to encode response", "error", err, "path", r.URL.Path)
-	}
-}
-
-// List handles GET /todos — returns a paginated list of Todos.
-// Returns 200 OK with top-level JSON array, Total-Count header, Link header.
-func (h *TodoHandler) List(w http.ResponseWriter, r *http.Request) {
-	pageReq, err := pagination.ParseRequest(r)
-	if err != nil {
-		writeError(w, r, apptodo.ErrInvalidPageSize)
-		return
-	}
-
-	result, err := h.svc.FindAll(r.Context(), apptodo.ListQuery{
-		PageToken: pageReq.PageToken,
-		PageSize:  pageReq.PageSize,
-	})
-	if err != nil {
-		writeError(w, r, err)
-		return
+	resp := make([]Todo, len(todos))
+	for i, t := range todos {
+		resp[i] = mapDomainToTodo(t)
 	}
 
 	pageResp := &pagination.Response{
-		TotalCount: result.TotalCount,
-		NextToken:  result.NextToken,
+		TotalCount: totalCount,
+		NextToken:  nextToken,
 	}
 	pageResp.SetHeaders(w, r)
 
-	items := make([]todoResponse, len(result.Items))
-	for i, t := range result.Items {
-		items[i] = toTodoResponse(t)
-	}
-
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(items); err != nil {
-		slog.Warn("failed to encode response", "error", err, "path", r.URL.Path)
-	}
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(resp)
 }
 
-// Update handles PATCH /todos/{todoId} — partially updates a Todo.
-func (h *TodoHandler) Update(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "todoId")
-
-	var req updateTodoRequest
+func (h *TodoHandler) CreateTodo(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var req CreateTodoRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, r, apptodo.ErrInvalidJSON)
+		h.handleError(w, r, err)
 		return
 	}
 
-	todo, err := h.svc.Update(r.Context(), id, apptodo.UpdateCommand{
-		Title:       req.Title,
-		Description: req.Description,
-	})
+	desc := ""
+	if req.Description != nil {
+		desc = *req.Description
+	}
+
+	todo, err := h.service.Create(ctx, req.Title, desc)
 	if err != nil {
-		writeError(w, r, err)
+		h.handleError(w, r, err)
 		return
 	}
 
+	resp := mapDomainToTodo(todo)
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(toTodoResponse(todo)); err != nil {
-		slog.Warn("failed to encode response", "error", err, "path", r.URL.Path)
-	}
+	w.Header().Set("Location", "/todos/"+todo.ID)
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(resp)
 }
 
-// Delete handles DELETE /todos/{todoId} — removes a Todo.
-// Returns 204 No Content.
-func (h *TodoHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "todoId")
-	if err := h.svc.Delete(r.Context(), id); err != nil {
-		writeError(w, r, err)
+func (h *TodoHandler) GetTodo(w http.ResponseWriter, r *http.Request, todoID string) {
+	ctx := r.Context()
+	todo, err := h.service.FindByID(ctx, todoID)
+	if err != nil {
+		h.handleError(w, r, err)
 		return
 	}
+
+	resp := mapDomainToTodo(todo)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(resp)
+}
+
+func (h *TodoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request, todoID string) {
+	ctx := r.Context()
+	var req UpdateTodoRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.handleError(w, r, err)
+		return
+	}
+
+	todo, err := h.service.Update(ctx, todoID, req.Title, req.Description)
+	if err != nil {
+		h.handleError(w, r, err)
+		return
+	}
+
+	resp := mapDomainToTodo(todo)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(resp)
+}
+
+func (h *TodoHandler) DeleteTodo(w http.ResponseWriter, r *http.Request, todoID string) {
+	ctx := r.Context()
+	if err := h.service.Delete(ctx, todoID); err != nil {
+		h.handleError(w, r, err)
+		return
+	}
+
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// Complete handles POST /todos/{todoId}:complete — marks a Todo as done.
-// Colon-syntax custom action per ppzxc RESTful Guidelines (Google AIP-136).
-func (h *TodoHandler) Complete(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "todoId")
-	todo, err := h.svc.Complete(r.Context(), id)
+func (h *TodoHandler) CompleteTodo(w http.ResponseWriter, r *http.Request, todoID string) {
+	ctx := r.Context()
+	todo, err := h.service.Complete(ctx, todoID)
 	if err != nil {
-		writeError(w, r, err)
+		h.handleError(w, r, err)
 		return
 	}
+
+	resp := mapDomainToTodo(todo)
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(toTodoResponse(todo)); err != nil {
-		slog.Warn("failed to encode response", "error", err, "path", r.URL.Path)
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(resp)
+}
+
+func mapDomainToTodo(t *domain.Todo) Todo {
+	var desc *string
+	if t.Description != "" {
+		desc = &t.Description
+	}
+
+	u, _ := uuid.Parse(t.ID)
+
+	return Todo{
+		Id:          openapi_types.UUID(u),
+		Title:       t.Title,
+		Description: desc,
+		Completed:   t.Completed,
+		CreatedAt:   t.CreatedAt,
+		UpdatedAt:   t.UpdatedAt,
 	}
 }

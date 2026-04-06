@@ -4,29 +4,18 @@ import (
 	"errors"
 	"net/http"
 
-	apptodo "github.com/ppzxc/golang-vibe-boilerplate/internal/app/todo"
 	domain "github.com/ppzxc/golang-vibe-boilerplate/internal/domain/todo"
-	"github.com/ppzxc/golang-vibe-boilerplate/pkg/httputil"
 	"github.com/ppzxc/golang-vibe-boilerplate/pkg/problemdetail"
 )
 
-// writeError maps domain errors to HTTP Problem Details responses.
-func writeError(w http.ResponseWriter, r *http.Request, err error) {
-	id := httputil.RequestIDFromContext(r.Context())
-	instance := r.URL.Path
-
-	switch {
-	case errors.Is(err, domain.ErrNotFound):
-		problemdetail.NotFound(instance, id).Write(w)
-	case errors.Is(err, domain.ErrAlreadyDone):
-		problemdetail.UnprocessableEntity(err.Error(), instance, id).Write(w)
-	case errors.Is(err, domain.ErrTitleRequired):
-		problemdetail.BadRequest(err.Error(), instance, id).Write(w)
-	case errors.Is(err, apptodo.ErrInvalidJSON):
-		problemdetail.BadRequest(err.Error(), instance, id).Write(w)
-	case errors.Is(err, apptodo.ErrInvalidPageSize):
-		problemdetail.BadRequest(err.Error(), instance, id).Write(w)
-	default:
-		problemdetail.InternalServerError(instance, id).Write(w)
+func (h *TodoHandler) handleError(w http.ResponseWriter, r *http.Request, err error) {
+	if errors.Is(err, domain.ErrNotFound) {
+		problemdetail.New(http.StatusNotFound, "Todo Not Found").WithDetail(err.Error()).Write(w)
+		return
 	}
+	if errors.Is(err, domain.ErrTitleRequired) || errors.Is(err, domain.ErrAlreadyDone) {
+		problemdetail.New(http.StatusBadRequest, "Bad Request").WithDetail(err.Error()).Write(w)
+		return
+	}
+	problemdetail.New(http.StatusInternalServerError, "Internal Server Error").WithDetail(err.Error()).Write(w)
 }

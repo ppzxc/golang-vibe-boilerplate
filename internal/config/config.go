@@ -38,6 +38,11 @@ func (d *DatabaseConfig) DSN() string {
 	)
 }
 
+// GetDSN is a provider for Wire.
+func GetDSN(cfg *Config) string {
+	return cfg.Database.DSN()
+}
+
 // Load reads configuration from environment variables with sensible defaults.
 // Returns an error if required environment variables are missing.
 func Load() (*Config, error) {
