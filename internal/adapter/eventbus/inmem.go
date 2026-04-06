@@ -18,13 +18,13 @@ func NewInMemoryEventBus() *InMemoryEventBus {
 
 func (b *InMemoryEventBus) Publish(ctx context.Context, events []domain.Event) error {
 	for _, e := range events {
-		slog.Info("publishing domain event", "type", getEventType(e), "occurredAt", e.OccurredAt())
+		slog.Info("publishing domain event", "type", b.eventName(e), "occurredAt", e.OccurredAt())
 		// In a real app, you'd dispatch to registered handlers here
 	}
 	return nil
 }
 
-func (b *InMemEventBus) eventName(e domain.Event) string {
+func (b *InMemoryEventBus) eventName(e domain.Event) string {
 	switch e.(type) {
 	case domain.Created:
 		return "Created"

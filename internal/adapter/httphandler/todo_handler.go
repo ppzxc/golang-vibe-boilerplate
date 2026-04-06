@@ -2,7 +2,6 @@ package httphandler
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -136,18 +135,6 @@ func (h *TodoHandler) CompleteTodo(w http.ResponseWriter, r *http.Request, todoI
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(resp)
-}
-
-func (h *TodoHandler) handleError(w http.ResponseWriter, r *http.Request, err error) {
-	if errors.Is(err, domain.ErrNotFound) {
-		Problem(w, r, http.StatusNotFound, "Todo Not Found", err.Error())
-		return
-	}
-	if errors.Is(err, domain.ErrTitleRequired) || errors.Is(err, domain.ErrAlreadyDone) {
-		Problem(w, r, http.StatusBadRequest, "Bad Request", err.Error())
-		return
-	}
-	Problem(w, r, http.StatusInternalServerError, "Internal Server Error", err.Error())
 }
 
 func mapDomainToTodo(t *domain.Todo) Todo {

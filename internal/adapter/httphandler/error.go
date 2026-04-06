@@ -9,15 +9,13 @@ import (
 )
 
 func (h *TodoHandler) handleError(w http.ResponseWriter, r *http.Request, err error) {
-	var pd problemdetail.ProblemDetail
-
 	if errors.Is(err, domain.ErrNotFound) {
-		pd = problemdetail.New(http.StatusNotFound, "Todo not found", err.Error())
-	} else if errors.Is(err, domain.ErrInvalidInput) {
-		pd = problemdetail.New(http.StatusBadRequest, "Invalid input", err.Error())
-	} else {
-		pd = problemdetail.New(http.StatusInternalServerError, "Internal server error", "An unexpected error occurred")
+		problemdetail.New(http.StatusNotFound, "Todo Not Found").WithDetail(err.Error()).Write(w)
+		return
 	}
-
-	pd.Write(w, r)
+	if errors.Is(err, domain.ErrTitleRequired) || errors.Is(err, domain.ErrAlreadyDone) {
+		problemdetail.New(http.StatusBadRequest, "Bad Request").WithDetail(err.Error()).Write(w)
+		return
+	}
+	problemdetail.New(http.StatusInternalServerError, "Internal Server Error").WithDetail(err.Error()).Write(w)
 }
